@@ -15,7 +15,7 @@ print('[系统]小刀：子弹造成的伤害*2，对自己也*2。')
 time.sleep(1)
 print('[系统]放大镜：告诉你目前的子弹是实弹还是空弹。')
 time.sleep(1)
-print('[系统]香烟：回一滴血。')
+print('[系统]香烟：回一滴血，但血满时不能回血，并且还会消耗')
 time.sleep(1)
 print('[系统]药片：%40加2滴血，%60扣1滴血。')
 time.sleep(1)
@@ -27,6 +27,7 @@ exe = input('[系统]你，准备好了吗？(n退出，其他开始游戏)')
 if exe == 'n':
     exit()
 
+VERSION = '1.1.1'
 global myhp
 myhp = 5
 global dixd
@@ -59,22 +60,22 @@ e = x
 def player(x):
     global myhp
     while True:
-        t = int(input('[系统]请选择要打谁(1是自己,2是对方,3是使用道具)'))
-        if t == 1:
+        t = input('[系统]请选择要打谁(1是自己,2是对方,3是使用道具,4是关于,5是退出)')
+        if t == '1':
             if x[0] == 1:
                 print('[玩家]你打到了自己')
                 return 'mp'
             else:
                 print('[玩家]无事发生')
                 return 'buhuan'
-        elif t == 2:
+        elif t == '2':
             if x[0] == 1:
                 print('[玩家]你打到了对方')
                 return 'dp'
             else:
                 print('[玩家]无事发生')
                 return 'l'
-        else:
+        elif t == '3':
             while True:
                 print('[系统]你有1.',z[0],'2.',z[1],'3.',z[2],'4.',z[3],'5.',z[4],'6.',z[5],'7.',z[6],'8.',z[7],sep='')
                 superm = int(input('[系统]你要使用哪一个？(输编号，9退出)'))
@@ -129,26 +130,44 @@ def player(x):
                     z[superm - 1] = '空' 
                 else:
                     print('[系统]你输入了错误的编号')
+        elif t == '4':
+            print('[系统]目前版本:',VERSION,'作者:秋风')
+        elif t == '5':
+            exit()
+        else:
+            print('[系统]输入错误')
 
 def di(s,x):
+    def da(fang,x):
+        if fang == 'player':
+            if x[0] == 1:
+                print('[敌人]对方打到了你')
+                return 'mp'
+            else:
+                print('[敌人]对方打了你，但无事发生')
+                return 'l'
+        else:
+            if x[0] == 1:
+                print('[敌人]对方打到了自己')
+                return 'dp'
+            else:
+                print('[敌人]对方打了自己，但无事发生')
+                return 'buhuan'
+    ran = random.randint(1,10)
     if s > len(x) - s:
         t = 1
     else:
         t = 2
     if t == 1:
-        if x[0] == 1:
-            print('[敌人]对方打到了你')
-            return 'mp'
+        if ran <= 8:
+            return da('player',x)
         else:
-            print('[敌人]对方打了你，但无事发生')
-            return 'l'
+            return da('di',x)
     else:
-        if x[0] == 1:
-            print('[敌人]对方打到了自己')
-            return 'dp'
+        if ran <= 4:
+            return da('player',x)
         else:
-            print('[敌人]对方打了自己，但无事发生')
-            return 'buhuan'
+            return da('di',x)
 
 def look():
     if myhp <= 0:
