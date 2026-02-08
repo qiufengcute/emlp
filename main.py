@@ -257,7 +257,7 @@ class Game:
     def show_status(self) -> None:
         """显示游戏状态"""
         blank_count = len(self.bullets) - self.live_count
-        print(f"\n[系统]当前状态：")
+        print("\n[系统]当前状态：")
         print(f"  玩家生命值: {self.player_hp}/{INITIAL_HP}")
         print(f"  敌人生命值: {self.enemy_hp}/{INITIAL_HP}")
         print(
