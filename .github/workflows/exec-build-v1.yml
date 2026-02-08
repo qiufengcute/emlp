@@ -127,7 +127,7 @@ jobs:
           echo "=== 生成 ${{ matrix.name }} 的 SHA256 校验码 ==="
           certutil -hashfile "dist/恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}.exe" SHA256 | findstr /v "CertUtil" | findstr /v ":" > "checksum_temp.txt"
           set /p CHECKSUM=<checksum_temp.txt
-          echo "${{ matrix.name }}:%CHECKSUM%" > sha256_EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
+          echo "${{ matrix.name }}:%CHECKSUM%" > sha256_恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
           del checksum_temp.txt
           echo "===生成完成==="
         shell: cmd
@@ -147,8 +147,8 @@ jobs:
         with:
           name: ${{ matrix.name }}
           path: |
-            dist/EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}*
-            sha256_EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
+            dist/恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}*
+            sha256_恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
 
   create-release:
     name: Create Release
@@ -197,4 +197,3 @@ jobs:
           else
             echo "<h1>🚀 Release已发布！</h1><a href='${{ steps.create-release.outputs.url }}'>点此查看</a><br>版本: ${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
           fi
-
