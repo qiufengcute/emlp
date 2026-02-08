@@ -1,5 +1,9 @@
 # 🎮 恶魔轮盘 - Python命令行版
 
+[![Python 3.7+](https://img.shields.io/badge/Python-3.7+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![Stars](https://img.shields.io/github/stars/qiufengcute/emlp)](https://github.com/yourusername/demon-roulette/stargazers)
+
 ## ✨ 项目特色
 
 ### 🚀 **极致轻量**
@@ -69,7 +73,3 @@ Game (游戏主控制器)
 ## 📜 许可证
 
 MIT License - 完全自由地使用、修改和分发。
-
-## 🤝 致谢
-
-感谢所有开源社区的贡献者，以及喜欢文字游戏和优雅代码的每一位朋友。
