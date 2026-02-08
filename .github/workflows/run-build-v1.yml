@@ -1,0 +1,200 @@
+name: Build and Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number'
+        required: true
+        type: string
+      message:
+        description: 'Release message. ℹ️Use "|||" for line breaks. ℹ️Please use HTML tags,not Markdown'
+        required: false
+        type: string
+        default: ''
+      draft:
+        description: 'Create as draft release'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  check:
+    name: Check code error
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.check.outputs.should_build }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+  
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Upgrade pip and install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyflakes
+
+      - name: Check
+        id: check
+        run: |
+          pyflakes . > errors.txt || :
+          if [ -s errors.txt ]; then
+            echo "有错误"
+            echo "should_build=false" >> $GITHUB_OUTPUT
+            errors=$(cat errors.txt)
+            echo "<h1>Check error!</h1>Find errors!Please edit.<br>ERRORS:<br><pre>$errors</pre>" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "无错误"
+            echo "should_build=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        if: ${{ steps.check.outputs.should_build == 'false' }}
+        with:
+          name: errors
+          path: errors.txt
+
+  build:
+    needs: check
+    name: Build Executables
+    runs-on: ${{ matrix.os }}
+    if: ${{ needs.check.outputs.should_build == 'true' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Windows
+          - name: 'winx64'
+            os: 'windows-latest'
+            arch: 'x64'
+          - name: 'winx86'
+            os: 'windows-latest'
+            arch: 'x86'
+
+          # Linux
+          - name: 'linuxx64'
+            os: 'ubuntu-latest'
+            arch: 'x64'
+
+          # MacOS
+          - name: 'macosintel'
+            os: 'macos-15-intel'
+            arch: 'x64'
+          - name: 'macosm'
+            os: 'macos-latest'
+            arch: 'arm64'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+  
+      - name: Set up Python 3.12
+        if: matrix.name != 'linuxx86'
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          architecture: ${{ matrix.arch }}
+  
+      - name: Upgrade pip and install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install -r requirements.txt
+  
+      - name: Build executable for Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          echo "=== 开始构建 ${{ matrix.name }} ==="
+          pyinstaller --noconfirm --onefile --windowed --name "恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}.exe" main.py
+          echo "=== 构建完成 ==="
+
+      - name: Build executable for Unix
+        if: matrix.os != 'windows-latest'
+        run: |
+          echo "=== 开始构建 ${{ matrix.name }} ==="
+          pyinstaller --noconfirm --onefile --windowed --name "恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}" main.py
+          echo "=== 构建完成 ==="
+  
+      - name: Generate SHA256 checksum for Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          echo "=== 生成 ${{ matrix.name }} 的 SHA256 校验码 ==="
+          certutil -hashfile "dist/恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}.exe" SHA256 | findstr /v "CertUtil" | findstr /v ":" > "checksum_temp.txt"
+          set /p CHECKSUM=<checksum_temp.txt
+          echo "${{ matrix.name }}:%CHECKSUM%" > sha256_EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
+          del checksum_temp.txt
+          echo "===生成完成==="
+        shell: cmd
+  
+      - name: Generate SHA256 checksum for Unix
+        if: matrix.os != 'windows-latest'
+        run: |
+          echo "=== 生成 ${{ matrix.name }} 的 SHA256 校验码 ==="
+          shasum -a 256 "dist/恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}" | cut -d ' ' -f 1 > "checksum_temp.txt"
+          CHECKSUM=$(cat "checksum_temp.txt")
+          echo "${{ matrix.name }}:$CHECKSUM" > sha256_恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
+          rm -f "checksum_temp.txt"
+          echo "===生成完成==="
+  
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: |
+            dist/EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}*
+            sha256_EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
+
+  create-release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+  
+      - name: Prepare Release Message
+        id: prepare-message
+        run: |
+          INPUT_MESSAGE="${{ github.event.inputs.message }}"
+          if [ -z "$INPUT_MESSAGE" ]; then
+            FINAL_MESSAGE="Release ${{ github.event.inputs.version }}"
+          else
+            FINAL_MESSAGE=$(echo "$INPUT_MESSAGE" | sed 's/|||/<br>/g')
+          fi
+          
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "final_message<<$EOF" >> $GITHUB_OUTPUT
+          echo "$FINAL_MESSAGE" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
+  
+      - name: Create Release Draft with Tag
+        id: create-release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.version }}
+          name: Release ${{ github.event.inputs.version }}
+          body: ${{ steps.prepare-message.outputs.final_message }}
+          draft: ${{ github.event.inputs.draft }}
+          files: |
+            ./artifacts/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+      - name: Add Release Link to Summary
+        run: |
+          if ${{ github.event.inputs.draft }}; then
+            echo "<h1>🚀 草稿 Release已发布！</h1><a href='${{ steps.create-release.outputs.url }}'>点此查看</a><br>版本: ${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "<h1>🚀 Release已发布！</h1><a href='${{ steps.create-release.outputs.url }}'>点此查看</a><br>版本: ${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
+          fi
