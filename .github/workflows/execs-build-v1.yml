@@ -149,6 +149,11 @@ jobs:
           path: |
             dist/恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}*
             sha256_恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
+          exclude: |
+            *.app/**
+            CodeResources
+            Info.plist
+            *.icns
 
   create-release:
     name: Create Release
