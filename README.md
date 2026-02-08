@@ -2,7 +2,7 @@
 
 [![Python 3.7+](https://img.shields.io/badge/Python-3.7+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Stars](https://img.shields.io/github/stars/qiufengcute/emlp)](https://github.com/yourusername/demon-roulette/stargazers)
+[![Stars](https://img.shields.io/github/stars/qiufengcute/emlp)](https://github.com/qiufengcute/emlp/stargazers)
 
 ## ✨ 项目特色
 
