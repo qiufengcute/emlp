@@ -119,6 +119,9 @@ jobs:
         run: |
           echo "=== 开始构建 ${{ matrix.name }} ==="
           pyinstaller --noconfirm --onefile --windowed --name "恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}" main.py
+          if [[ "${{ matrix.name }}" == macos* ]]; then
+            rm -rf *.app
+          fi
           echo "=== 构建完成 ==="
   
       - name: Generate SHA256 checksum for Windows
@@ -149,11 +152,6 @@ jobs:
           path: |
             dist/恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}*
             sha256_恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
-          exclude: |
-            *.app/**
-            CodeResources
-            Info.plist
-            *.icns
 
   create-release:
     name: Create Release
