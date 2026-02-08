@@ -114,14 +114,20 @@ jobs:
           pyinstaller --noconfirm --onefile --windowed --name "恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}.exe" main.py
           echo "=== 构建完成 ==="
 
-      - name: Build executable for Unix
-        if: matrix.os != 'windows-latest'
+      - name: Build executable for Linux
+        if: matrix.os == 'ubuntu-latest'
         run: |
           echo "=== 开始构建 ${{ matrix.name }} ==="
           pyinstaller --noconfirm --onefile --windowed --name "恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}" main.py
-          if [[ "${{ matrix.name }}" == macos* ]]; then
-            rm -rf *.app
-          fi
+          echo "=== 构建完成 ==="
+
+      - name: Build executable for MacOS
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          echo "=== 开始构建 ${{ matrix.name }} ==="
+          pyinstaller --noconfirm --onefile --windowed --name "EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}" main.py
+          cd dist
+          rm -rf *.app
           echo "=== 构建完成 ==="
   
       - name: Generate SHA256 checksum for Windows
