@@ -111,14 +111,14 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           echo "=== 开始构建 ${{ matrix.name }} ==="
-          pyinstaller --noconfirm --onefile --windowed --name "恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}.exe" main.py
+          pyinstaller --noconfirm --onefile --windowed --name "EMLP_${{ github.event.inputs.version }}_${{ matrix.name }}.exe" main.py
           echo "=== 构建完成 ==="
 
       - name: Build executable for Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
           echo "=== 开始构建 ${{ matrix.name }} ==="
-          pyinstaller --noconfirm --onefile --windowed --name "恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}" main.py
+          pyinstaller --noconfirm --onefile --windowed --name "EMLP_${{ github.event.inputs.version }}_${{ matrix.name }}" main.py
           echo "=== 构建完成 ==="
 
       - name: Build executable for MacOS
@@ -134,9 +134,9 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           echo "=== 生成 ${{ matrix.name }} 的 SHA256 校验码 ==="
-          certutil -hashfile "dist/恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}.exe" SHA256 | findstr /v "CertUtil" | findstr /v ":" > "checksum_temp.txt"
+          certutil -hashfile "dist/EMLP_${{ github.event.inputs.version }}_${{ matrix.name }}.exe" SHA256 | findstr /v "CertUtil" | findstr /v ":" > "checksum_temp.txt"
           set /p CHECKSUM=<checksum_temp.txt
-          echo "${{ matrix.name }}:%CHECKSUM%" > sha256_恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
+          echo "${{ matrix.name }}:%CHECKSUM%" > sha256_EMLP_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
           del checksum_temp.txt
           echo "===生成完成==="
         shell: cmd
@@ -145,9 +145,9 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           echo "=== 生成 ${{ matrix.name }} 的 SHA256 校验码 ==="
-          shasum -a 256 "dist/恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}" | cut -d ' ' -f 1 > "checksum_temp.txt"
+          shasum -a 256 "dist/EMLP_${{ github.event.inputs.version }}_${{ matrix.name }}" | cut -d ' ' -f 1 > "checksum_temp.txt"
           CHECKSUM=$(cat "checksum_temp.txt")
-          echo "${{ matrix.name }}:$CHECKSUM" > sha256_恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
+          echo "${{ matrix.name }}:$CHECKSUM" > sha256_EMLP_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
           rm -f "checksum_temp.txt"
           echo "===生成完成==="
   
@@ -156,8 +156,8 @@ jobs:
         with:
           name: ${{ matrix.name }}
           path: |
-            dist/恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}*
-            sha256_恶魔轮盘_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
+            dist/EMLP_${{ github.event.inputs.version }}_${{ matrix.name }}*
+            sha256_EMLP_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
 
   create-release:
     name: Create Release
